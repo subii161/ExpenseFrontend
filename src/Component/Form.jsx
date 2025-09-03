@@ -14,7 +14,8 @@ function handleAmountChange(e){
 }
 function handleSubmite(e){
     e.preventDefault();
-    props.addExpense(title,amount);
+    if(!title || !amount) return;
+    props.addExpense(title,Number(amount));
     setTitle("");
     setAmount("");
 }

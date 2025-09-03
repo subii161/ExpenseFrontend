@@ -1,53 +1,66 @@
-import React, { useEffect , useState} from 'react';
+import React, { useState, useEffect } from 'react';
 import Form from './Form';
 import History from './History';
 import Balancecontainer from './Balancecontainer';
-import {v4 as uid} from 'uuid';
-
 
 function Expensecontainer() {
+  const [expense, setExpense] = useState([]);
 
-
-//npm i uuid
-  const EXPENSE=[
-  
-]
-
-   const [expense,setExpense]=useState(EXPENSE);
-      async function addExpense(title,amount)
-      {
-        // setExpense([...expense,{id:uid(),title,amount}])
-        // console.log(expense);
-        const newExpense=await fetch("http://localhost:3333/post",{
-        method:"post",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({title,amount})
+  // Add new expense
+  async function addExpense(title, amount) {
+    try {
+      const response = await fetch("http://localhost:3333/post", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title, amount: Number(amount) }) // ensure amount is a number
       });
-      getExpenses();
-      }
-      useEffect(()=>{
-        getExpenses();
-      },[]);
 
-      async function getExpenses() {
-        const response=await fetch("http://localhost:3333/")
-        const data =await response.json();
-        setExpense(data.expense);  
+      const data = await response.json();
+      console.log("Added:", data);
+
+      if (data.expense) {
+        getExpenses(); // refresh expense list after adding
       }
-  
-      async function deleteExpense(id){
-        await fetch(`http://localhost:3333/delete/${id}`,{
-        method:"DELETE"
+    } catch (error) {
+      console.log("Error adding expense:", error);
+    }
+  }
+
+  // Fetch all expenses from backend
+  async function getExpenses() {
+    try {
+      const response = await fetch("http://localhost:3333/");
+      const data = await response.json();
+      setExpense(data.expense);
+    } catch (error) {
+      console.log("Error fetching expenses:", error);
+    }
+  }
+
+  // Delete an expense
+  async function deleteExpense(id) {
+    try {
+      await fetch(`http://localhost:3333/delete/${id}`, {
+        method: "DELETE"
       });
-      getExpenses();
+      getExpenses(); // refresh after deletion
+    } catch (error) {
+      console.log("Error deleting expense:", error);
+    }
+  }
+
+  // Load expenses on component mount
+  useEffect(() => {
+    getExpenses();
+  }, []);
 
   return (
     <div className='expense-container'>
-        <Balancecontainer expense={expense}/>
-        <Form addExpense={addExpense}/>
-        <History expense={expense} deleteExpense={deleteExpense}/>
+      <Balancecontainer expense={expense} />
+      <Form addExpense={addExpense} />
+      <History expense={expense} deleteExpense={deleteExpense} />
     </div>
   );
-      }
 }
+
 export default Expensecontainer;
